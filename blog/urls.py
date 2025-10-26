@@ -1,7 +1,17 @@
-from django.urls import path
-from blog.views import create_blog_post, blog_post_list_create
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from blog.views import BlogPostListViewSet, BlogPostDetailViewSet, BlogPostCreateViewSet, BlogPostUpdateViewSet, \
+    BlogPostDeleteViewSet, BlogPostViewSet
+
+router = DefaultRouter()
+router.register(r'blog_posts', BlogPostListViewSet, basename='blog_posts')
+router.register(r'blog-post', BlogPostDetailViewSet, basename='blog_post')
+router.register(r'blog-post_create', BlogPostCreateViewSet, basename='blog_post_create')
+router.register(r'blog-post_update', BlogPostUpdateViewSet, basename='blog_post_update')
+router.register(r'blog-post_delete', BlogPostDeleteViewSet, basename='blog_post_delete')
+
+router.register(r'blogposts', BlogPostViewSet, basename='blogpost')
 
 urlpatterns = [
-    path('create_blog_post/', create_blog_post, name='create_blog_post'),
-    path('blog_post_list_create/', blog_post_list_create, name='blog_post_list_create'),
+    path('', include(router.urls)),
 ]

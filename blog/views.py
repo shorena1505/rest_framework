@@ -1,31 +1,53 @@
-from rest_framework import response, status
-from rest_framework.decorators import api_view
+from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 
-
-import blog
 from blog.models import BlogPost
-from blog.serializers import BlogPostSerializer
+from blog.serializers import BlogPostListSerializer, BlogPostDetailSerializer, BlogPostCreateUpdateSerializer
 
 
-@api_view(['POST'])
-def create_blog_post(request):
-    serializer=BlogPostSerializer(data=request.data)
-    if serializer.is_valid():
-       return response.Response(serializer.validated_data)
-    return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class BlogPostListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = BlogPost.objects.all()
+    serializer_class = BlogPostListSerializer
 
 
-@api_view(['GET', 'POST'])
-def blog_post_list_create(request):
-    if request.method == 'GET':
-        blogs = BlogPost.objects.filter(author=request.user)
-        serializer = BlogPostSerializer(blogs, many=True)
-        return Response(serializer.data)
+class BlogPostDetailViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    queryset = BlogPost.objects.all()
+    serializer_class = BlogPostDetailSerializer
 
-    elif request.method == 'POST':
-        serializer = BlogPostSerializer(data=request.data)
-        if serializer.is_valid():
-            BlogPost.objects.create(**serializer.validated_data)
-            return Response(serializer.validated_data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class BlogPostCreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    queryset = BlogPost.objects.all()
+    serializer_class = BlogPostCreateUpdateSerializer
+
+
+class BlogPostUpdateViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    queryset = BlogPost.objects.all()
+    serializer_class = BlogPostCreateUpdateSerializer
+
+
+
+class BlogPostDeleteViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    queryset = BlogPost.objects.filter(deleted=False)
+
+
+
+class BlogPostViewSet(viewsets.ModelViewSet):
+    queryset = BlogPost.objects.filter(deleted=False)
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return BlogPostDetailSerializer
+        elif self.action == 'create':
+            return BlogPostCreateUpdateSerializer
+        elif self.action == 'update':
+            return BlogPostCreateUpdateSerializer
+
+        else:
+            return BlogPostListSerializer
+
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.deleted = True
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -1,7 +1,23 @@
 from rest_framework import serializers
 
+from blog.models import BlogPost
 
-class BlogPostSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=100)
-    author = serializers.CharField()
-    published = serializers.DateTimeField()
+
+class BlogPostListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'title']
+
+
+class BlogPostDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'title', 'author', 'published']
+
+
+class BlogPostCreateUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = ['title', 'author']
+
+
